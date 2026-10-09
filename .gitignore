@@ -1,0 +1,8 @@
+node_modules/
+www/
+
+# Signaturschlüssel der Android-App und fertige Installationspakete gehören nicht ins öffentliche Repository
+signatur/
+*.apk
+*.p12
+*.jks

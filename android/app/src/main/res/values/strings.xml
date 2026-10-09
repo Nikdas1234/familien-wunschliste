@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Wunschliste</string>
+    <string name="title_activity_main">Wunschliste</string>
+    <string name="package_name">io.github.nikdas1234.wunschliste</string>
+    <string name="custom_url_scheme">io.github.nikdas1234.wunschliste</string>
+</resources>

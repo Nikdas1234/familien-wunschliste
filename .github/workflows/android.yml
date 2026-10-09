@@ -1,0 +1,78 @@
+# Baut die Android-App (APK) und legt sie als herunterladbares Ergebnis am Lauf ab.
+# Läuft bei jeder Änderung an App oder Android-Projekt und auf Knopfdruck ("Run workflow").
+name: Android-App bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - style.css
+      - app.js
+      - config.js
+      - icons/**
+      - android/**
+      - package.json
+      - package-lock.json
+      - capacitor.config.json
+      - werkzeuge/www-bauen.js
+      - .github/workflows/android.yml
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Abhängigkeiten installieren
+        run: npm ci --no-fund --no-audit
+
+      - name: Web-Dateien in das Android-Projekt übernehmen
+        run: npm run android:sync
+
+      - name: Signaturschlüssel bereitlegen
+        env:
+          WL_KEYSTORE_B64: ${{ secrets.WL_KEYSTORE_B64 }}
+        run: |
+          test -n "$WL_KEYSTORE_B64" || { echo "Secret WL_KEYSTORE_B64 fehlt"; exit 1; }
+          echo "$WL_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.p12"
+
+      - name: APK bauen
+        working-directory: android
+        env:
+          WL_KEYSTORE_FILE: ${{ runner.temp }}/release.p12
+          WL_KEYSTORE_PASSWORD: ${{ secrets.WL_KEYSTORE_PASSWORD }}
+          WL_KEY_ALIAS: wunschliste
+          WL_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Signatur prüfen und Datei benennen
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --print-certs "$APK"
+          VERSION=$(node -p "require('./package.json').version")
+          cp "$APK" "Wunschliste-$VERSION-${{ github.run_number }}.apk"
+          rm -f "$RUNNER_TEMP/release.p12"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Wunschliste-APK
+          path: Wunschliste-*.apk
+          if-no-files-found: error

@@ -538,7 +538,20 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && state.data && !document.querySelector('dialog[open]')) refresh();
 });
 
-if ('serviceWorker' in navigator) {
+// In der Android-App (Capacitor) liegen die Dateien schon im Installationspaket.
+const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+
+if (native) {
+  // Zurück-Taste: offenen Dialog schließen, sonst die App in den Hintergrund legen.
+  const nativeApp = window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if (nativeApp) {
+    nativeApp.addListener('backButton', () => {
+      const dialog = document.querySelector('dialog[open]');
+      if (dialog) dialog.close();
+      else nativeApp.minimizeApp();
+    });
+  }
+} else if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => { /* App läuft auch ohne */ });
 }
 
