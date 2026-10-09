@@ -1,5 +1,7 @@
 # Baut die Android-App (APK) und legt sie als herunterladbares Ergebnis am Lauf ab.
-# Läuft bei jeder Änderung an App oder Android-Projekt und auf Knopfdruck ("Run workflow").
+# Die App lädt ihren Inhalt beim Start aus dem Internet (GitHub Pages). Änderungen an
+# index.html, app.js, style.css usw. brauchen deshalb KEINE neue APK. Gebaut wird nur,
+# wenn sich die Android-Hülle selbst ändert, und auf Knopfdruck ("Run workflow").
 name: Android-App bauen
 
 on:
@@ -7,11 +9,7 @@ on:
   push:
     branches: [main]
     paths:
-      - index.html
-      - style.css
-      - app.js
-      - config.js
-      - icons/**
+      - offline.html
       - android/**
       - package.json
       - package-lock.json

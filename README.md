@@ -21,7 +21,7 @@ Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
 | `config.js` | Adresse und öffentlicher Schlüssel eingetragen |
 | Familie mit Familiencode | angelegt (von Niklas, Code steht nur in der Datenbank) |
 | Veröffentlichung im Internet | GitHub Pages, siehe Adresse unten |
-| Android-App | wird auf GitHub gebaut und signiert; Version 1.0.0 liegt als `2026-10-09_Wunschliste-1.0.0.apk` im Projektordner. **Noch nicht auf einem echten Handy getestet.** |
+| Android-App | wird auf GitHub gebaut und signiert; Version 1.1.0 liegt als `2026-10-09_Wunschliste-1.1.0.apk` im Projektordner; sie aktualisiert ihren Inhalt selbst. **Noch nicht auf einem echten Handy getestet.** |
 
 ## Android-App
 
@@ -29,11 +29,18 @@ Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
 Android fragt einmal, ob die App, mit der man die Datei öffnet, „unbekannte Apps installieren“
 darf — erlauben. Meldet Play Protect einen unbekannten Entwickler, „Trotzdem installieren“ wählen.
 
-**Neue Version bauen:** Die App enthält ihre Dateien selbst. Eine Änderung kommt deshalb erst
-mit einer neuen APK auf die Handys:
+**Updates kommen von selbst:** Die App lädt ihren Inhalt beim Start von der Adresse der
+Web-App (GitHub Pages). Eine Änderung an `index.html`, `app.js`, `style.css` usw. ist nach
+`git push` beim nächsten Öffnen der App da — spätestens nach rund zehn Minuten, so lange hält
+GitHub Pages alte Dateien vor. Niemand muss etwas neu installieren.
 
-1. Änderung committen und mit `git push` zu GitHub hochladen. Für eine neue Versionsnummer
-   vorher `version` in `package.json` erhöhen.
+Ohne Netz startet die App mit dem zuletzt geladenen Stand. Klappt das Laden gar nicht (z. B.
+beim allerersten Start ohne Netz), zeigt sie die Seite `offline.html` aus dem Installationspaket.
+
+**Neue APK nur für die Hülle:** Eine neue Installationsdatei braucht es nur, wenn sich die
+Android-Hülle selbst ändert — App-Name, Symbol, Capacitor-Version, `offline.html`. Dann:
+
+1. `version` in `package.json` erhöhen, committen, `git push`.
 2. GitHub baut automatisch (Reiter „Actions“, Ablauf „Android-App bauen“, ca. 2 Minuten).
 3. Ergebnis herunterladen und verteilen:
 
@@ -43,7 +50,7 @@ mit einer neuen APK auf die Handys:
 
    (`gh` ist das GitHub-Kommandozeilenwerkzeug; ohne weitere Angabe fragt es nach dem Lauf.)
 
-Die neue APK wird einfach über die alte installiert; Familiencode und Name bleiben gespeichert.
+Die neue APK wird einfach über die alte installiert.
 
 **Signaturschlüssel:** Android nimmt ein Update nur an, wenn es mit demselben Schlüssel
 unterschrieben ist. Der Schlüssel liegt im Ordner `signatur/` (nicht im Repository) und als
@@ -119,5 +126,6 @@ beiden Werte in `config.js`, läuft der **Demo-Modus** mit Beispielfamilie nur i
 | `android/`, `capacitor.config.json`, `package.json` | Android-Hülle (Capacitor: packt die Web-Dateien in eine Android-App) |
 | `.github/workflows/android.yml` | Bauablauf auf GitHub |
 | `werkzeuge/www-bauen.js` | stellt die Dateien für die Android-App zusammen |
+| `offline.html` | Seite der Android-App, wenn die Wunschliste nicht geladen werden kann |
 | `signatur/` | Signaturschlüssel, nur lokal |
 | `werkzeuge/icons-erzeugen.ps1` | zeichnet das App-Symbol neu |

@@ -1,5 +1,9 @@
 {
   "appId": "io.github.nikdas1234.wunschliste",
   "appName": "Wunschliste",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "url": "https://nikdas1234.github.io/familien-wunschliste/",
+    "errorPath": "offline.html"
+  }
 }

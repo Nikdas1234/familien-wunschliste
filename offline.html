@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Wunschliste – keine Verbindung</title>
+  <!-- Wird nur in der Android-App gezeigt, wenn die Wunschliste nicht geladen werden kann.
+       Liegt im Installationspaket und muss deshalb ohne weitere Dateien auskommen. -->
+  <style>
+    :root { --bg: #faf6f1; --text: #2a2320; --muted: #75695f; --accent: #b4432f; --accent-text: #fff; color-scheme: light dark; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #1c1917; --text: #f5efe9; --muted: #b3a79c; --accent: #f08a6c; --accent-text: #2a1610; }
+    }
+    body {
+      margin: 0; min-height: 100dvh; padding: 32px 20px; box-sizing: border-box;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      background: var(--bg); color: var(--text); text-align: center;
+      font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    h1 { margin: 0; font-size: 1.35rem; }
+    p { margin: 0; max-width: 22em; color: var(--muted); }
+    button {
+      min-height: 48px; padding: 10px 22px; border: 0; border-radius: 12px;
+      background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div style="font-size: 3.5rem; line-height: 1" aria-hidden="true">🎁</div>
+  <h1>Keine Verbindung</h1>
+  <p>Die Wunschliste konnte nicht geladen werden. Bitte prüfe WLAN oder mobile Daten.</p>
+  <button type="button" id="retry">Noch einmal versuchen</button>
+  <script>
+    var APP = 'https://nikdas1234.github.io/familien-wunschliste/';
+    document.getElementById('retry').addEventListener('click', function () { location.replace(APP); });
+    // Sobald das Handy wieder online ist, von selbst zurück zur App.
+    window.addEventListener('online', function () { location.replace(APP); });
+  </script>
+</body>
+</html>
