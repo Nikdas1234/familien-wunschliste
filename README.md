@@ -25,7 +25,10 @@ Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
 
 ## Android-App
 
-**Installieren:** Die APK-Datei aufs Handy bringen (Messenger, E-Mail, USB, Cloud) und antippen.
+**Download-Link (immer die neueste Version):**
+<https://github.com/Nikdas1234/familien-wunschliste/releases/latest/download/Wunschliste.apk>
+
+**Installieren:** Den Link auf dem Handy öffnen und die heruntergeladene Datei antippen.
 Android fragt einmal, ob die App, mit der man die Datei öffnet, „unbekannte Apps installieren“
 darf — erlauben. Meldet Play Protect einen unbekannten Entwickler, „Trotzdem installieren“ wählen.
 
@@ -42,15 +45,10 @@ Android-Hülle selbst ändert — App-Name, Symbol, Capacitor-Version, `offline.
 
 1. `version` in `package.json` erhöhen, committen, `git push`.
 2. GitHub baut automatisch (Reiter „Actions“, Ablauf „Android-App bauen“, ca. 2 Minuten).
-3. Ergebnis herunterladen und verteilen:
-
-   ```powershell
-   gh run download --name Wunschliste-APK
-   ```
-
-   (`gh` ist das GitHub-Kommandozeilenwerkzeug; ohne weitere Angabe fragt es nach dem Lauf.)
-
-Die neue APK wird einfach über die alte installiert.
+3. Der Bau veröffentlicht die Datei selbst als „Release“ (so heißt auf GitHub eine
+   veröffentlichte Version); der Download-Link oben zeigt danach auf die neue Datei.
+4. Der Familie Bescheid geben: Link öffnen, Datei antippen. Die neue APK wird einfach über
+   die alte installiert.
 
 **Signaturschlüssel:** Android nimmt ein Update nur an, wenn es mit demselben Schlüssel
 unterschrieben ist. Der Schlüssel liegt im Ordner `signatur/` (nicht im Repository) und als
