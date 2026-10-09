@@ -34,6 +34,8 @@ const state = {
   loadError: null,
   codeError: null,
   shared: null,
+  appVersion: null,
+  appUpdate: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -406,6 +408,9 @@ function mainScreen() {
       h('button', { class: 'icon-btn avatar', 'aria-label': `Angemeldet als ${me.name} – Menü`, onclick: openMenu },
         me.name.charAt(0).toUpperCase())),
 
+    state.appUpdate && h('p', { class: 'banner' },
+      `Es gibt eine neue App-Version (${state.appUpdate}). Nach dem Herunterladen die Datei antippen und „Aktualisieren“ wählen. `,
+      h('a', { class: 'link', href: APK_URL, target: '_blank', rel: 'noopener noreferrer' }, 'Jetzt herunterladen')),
     DEMO && h('p', { class: 'banner' }, 'Demo-Modus: Die Wünsche liegen nur auf diesem Gerät.'),
     state.offline && h('p', { class: 'banner' }, 'Keine Verbindung – du siehst den letzten Stand.'),
 
@@ -472,6 +477,7 @@ function openMenu() {
   const me = memberById(state.me);
   const dialog = openDialog('sheet',
     h('h2', null, `Angemeldet als ${me.name}`),
+    state.appVersion && h('p', { class: 'muted' }, `App-Version ${state.appVersion}`),
     h('div', { class: 'stack' },
       h('button', {
         class: 'btn',
@@ -589,6 +595,44 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => { /* App läuft auch ohne */ });
 }
 
+// Android-App: Der Inhalt aktualisiert sich von selbst. Nur wenn sich die Hülle ändert, braucht es
+// eine neue Installationsdatei — dann erscheint ein Hinweis mit Download-Link. Still und von allein
+// darf sich eine App außerhalb des Play Store unter Android nicht ersetzen.
+const RELEASE_API = 'https://api.github.com/repos/Nikdas1234/familien-wunschliste/releases/latest';
+const APK_URL = 'https://github.com/Nikdas1234/familien-wunschliste/releases/latest/download/Wunschliste.apk';
+const UPDATE_CHECK_EVERY_MS = 6 * 60 * 60 * 1000;
+
+function isNewerVersion(latest, installed) {
+  const a = latest.split('.').map(Number);
+  const b = installed.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0);
+  }
+  return false;
+}
+
+async function checkAppUpdate() {
+  if (!nativeApp) return;
+  try {
+    state.appVersion = (await nativeApp.getInfo()).version;
+    // GitHub erlaubt ohne Anmeldung nur wenige Abfragen pro Stunde, deshalb das Ergebnis merken.
+    let latest = store.get('wl.latest');
+    if (!latest || Date.now() - latest.at > UPDATE_CHECK_EVERY_MS) {
+      const res = await fetch(RELEASE_API, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!res.ok) return;
+      latest = { version: String((await res.json()).tag_name).replace(/^v/, ''), at: Date.now() };
+      store.set('wl.latest', latest);
+    }
+    if (isNewerVersion(latest.version, state.appVersion)) {
+      state.appUpdate = latest.version;
+      render();
+    }
+  } catch {
+    // Ohne Prüfung läuft die App normal weiter.
+  }
+}
+
 state.view = state.me;
 render();
+checkAppUpdate();
 if (DEMO || state.code) refresh();

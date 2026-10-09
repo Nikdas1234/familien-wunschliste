@@ -52,8 +52,12 @@ Android-Hülle selbst ändert — App-Name, Symbol, Capacitor-Version, `offline.
 2. GitHub baut automatisch (Reiter „Actions“, Ablauf „Android-App bauen“, ca. 2 Minuten).
 3. Der Bau veröffentlicht die Datei selbst als „Release“ (so heißt auf GitHub eine
    veröffentlichte Version); der Download-Link oben zeigt danach auf die neue Datei.
-4. Der Familie Bescheid geben: Link öffnen, Datei antippen. Die neue APK wird einfach über
-   die alte installiert.
+4. Die App meldet sich selbst: Beim nächsten Öffnen zeigt sie oben den Hinweis „Es gibt eine
+   neue App-Version“ mit dem Knopf „Jetzt herunterladen“ (geprüft wird höchstens alle sechs
+   Stunden). Nach dem Herunterladen die Datei antippen und „Aktualisieren“ bestätigen.
+
+Ganz von allein, ohne Antippen, geht das unter Android nur für Apps aus dem Play Store. Welche
+Version installiert ist, steht in der App im Menü (Kreis mit dem Anfangsbuchstaben oben rechts).
 
 **Signaturschlüssel:** Android nimmt ein Update nur an, wenn es mit demselben Schlüssel
 unterschrieben ist. Der Schlüssel liegt im Ordner `signatur/` (nicht im Repository) und als
