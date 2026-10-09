@@ -1,4 +1,6 @@
-# Baut die Android-App (APK) und legt sie als herunterladbares Ergebnis am Lauf ab.
+# Baut die Android-App (APK) und veröffentlicht sie als Release. Der Link
+# https://github.com/Nikdas1234/familien-wunschliste/releases/latest/download/Wunschliste.apk
+# zeigt damit immer auf die neueste Version.
 # Die App lädt ihren Inhalt beim Start aus dem Internet (GitHub Pages). Änderungen an
 # index.html, app.js, style.css usw. brauchen deshalb KEINE neue APK. Gebaut wird nur,
 # wenn sich die Android-Hülle selbst ändert, und auf Knopfdruck ("Run workflow").
@@ -17,8 +19,9 @@ on:
       - werkzeuge/www-bauen.js
       - .github/workflows/android.yml
 
+# "write" ist nötig, um das Release anzulegen.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   apk:
@@ -74,3 +77,15 @@ jobs:
           name: Wunschliste-APK
           path: Wunschliste-*.apk
           if-no-files-found: error
+
+      - name: Als Release veröffentlichen (fester Download-Link)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          cp "Wunschliste-$VERSION-${{ github.run_number }}.apk" Wunschliste.apk
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" Wunschliste.apk --clobber
+          else
+            gh release create "v$VERSION" Wunschliste.apk               --target "$GITHUB_SHA"               --title "Wunschliste $VERSION"               --notes "Android-App zum direkten Installieren: Wunschliste.apk herunterladen und antippen."               --latest
+          fi
