@@ -7,6 +7,6 @@
 // ("secret" bzw. "service_role"). Der öffentliche darf hier stehen, weil die Tabellen
 // gesperrt sind und nur mit dem Familiencode gelesen werden können.
 window.WUNSCHLISTE_CONFIG = {
-  supabaseUrl: '',
-  supabaseKey: '',
+  supabaseUrl: 'https://pgpwciaeoahyaxhrnesd.supabase.co',
+  supabaseKey: 'sb_publishable_MVn6E-z1pzSmvOLr6W9hJw_70m3ifoC',
 };

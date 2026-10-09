@@ -12,10 +12,13 @@ iPhone gleich und braucht keinen App Store.
 
 | Teil | Stand |
 |---|---|
-| App-Oberfläche | fertig, im Browser in Handygröße getestet (Demo-Modus) |
-| Datenbank-Skript `supabase/setup.sql` | geschrieben, **noch nicht gegen eine echte Datenbank getestet** |
-| Supabase-Konto und Projekt | offen — muss Niklas selbst anlegen |
-| Veröffentlichung im Internet (damit die Handys die App erreichen) | offen |
+| App-Oberfläche | fertig, im Browser in Handygröße getestet |
+| Supabase-Projekt „Wunschliste“ (Region eu-west-1) | eingerichtet, `supabase/setup.sql` ausgeführt |
+| Datenbank-Funktionen | per Selbsttest in der Datenbank geprüft (anlegen, ändern, abhaken, löschen, falscher Code, unzulässiger Link) |
+| Zugriff von außen | geprüft: Tabellen gesperrt, falscher Code wird abgewiesen |
+| `config.js` | Adresse und öffentlicher Schlüssel eingetragen |
+| Familie mit Familiencode | **offen** — trägt Niklas selbst ein (Schritt 3 unten) |
+| Veröffentlichung im Internet (damit die Handys die App erreichen) | **offen** |
 
 ## Am Rechner ausprobieren
 
@@ -23,8 +26,8 @@ iPhone gleich und braucht keinen App Store.
 node dev-server.js
 ```
 
-Dann <http://localhost:5180> im Browser öffnen. Solange in `config.js` nichts eingetragen ist,
-läuft der **Demo-Modus** mit Beispielfamilie; die Daten liegen dann nur in diesem Browser.
+Dann <http://localhost:5180> im Browser öffnen. Die App fragt nach dem Familiencode und arbeitet dann mit der echten Datenbank. Leert man die
+beiden Werte in `config.js`, läuft der **Demo-Modus** mit Beispielfamilie nur in diesem Browser.
 
 ## Gemeinsame Liste einrichten (einmalig)
 
