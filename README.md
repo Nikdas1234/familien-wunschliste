@@ -4,9 +4,11 @@ Eine Wunschliste fürs Handy: Jedes Familienmitglied trägt seine Wünsche ein, 
 Listen der anderen. Pro Wunsch gibt es Titel, Link zum Shop, ungefähren Preis und Wichtigkeit.
 Eigene Wünsche kann man bearbeiten, als erfüllt abhaken und löschen.
 
-Technisch ist es eine **Web-App, die sich wie eine App installieren lässt** (PWA): Man öffnet
-eine Adresse im Handy-Browser und legt sie auf den Startbildschirm. Das läuft auf Android und
-iPhone gleich und braucht keinen App Store.
+Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
+
+- **Android-App** zum direkten Installieren als APK-Datei (das Installationspaket einer
+  Android-App) — der Hauptweg für die Familie.
+- **Web-App** unter einer Internetadresse, z. B. für den Rechner oder ein iPhone.
 
 ## Stand (09.10.2026)
 
@@ -19,8 +21,38 @@ iPhone gleich und braucht keinen App Store.
 | `config.js` | Adresse und öffentlicher Schlüssel eingetragen |
 | Familie mit Familiencode | angelegt (von Niklas, Code steht nur in der Datenbank) |
 | Veröffentlichung im Internet | GitHub Pages, siehe Adresse unten |
+| Android-App | wird auf GitHub gebaut und signiert; Version 1.0.0 liegt als `2026-10-09_Wunschliste-1.0.0.apk` im Projektordner. **Noch nicht auf einem echten Handy getestet.** |
 
-## Adresse der App
+## Android-App
+
+**Installieren:** Die APK-Datei aufs Handy bringen (Messenger, E-Mail, USB, Cloud) und antippen.
+Android fragt einmal, ob die App, mit der man die Datei öffnet, „unbekannte Apps installieren“
+darf — erlauben. Meldet Play Protect einen unbekannten Entwickler, „Trotzdem installieren“ wählen.
+
+**Neue Version bauen:** Die App enthält ihre Dateien selbst. Eine Änderung kommt deshalb erst
+mit einer neuen APK auf die Handys:
+
+1. Änderung committen und mit `git push` zu GitHub hochladen. Für eine neue Versionsnummer
+   vorher `version` in `package.json` erhöhen.
+2. GitHub baut automatisch (Reiter „Actions“, Ablauf „Android-App bauen“, ca. 2 Minuten).
+3. Ergebnis herunterladen und verteilen:
+
+   ```powershell
+   gh run download --name Wunschliste-APK
+   ```
+
+   (`gh` ist das GitHub-Kommandozeilenwerkzeug; ohne weitere Angabe fragt es nach dem Lauf.)
+
+Die neue APK wird einfach über die alte installiert; Familiencode und Name bleiben gespeichert.
+
+**Signaturschlüssel:** Android nimmt ein Update nur an, wenn es mit demselben Schlüssel
+unterschrieben ist. Der Schlüssel liegt im Ordner `signatur/` (nicht im Repository) und als
+Secret bei GitHub. **Den Ordner `signatur/` einmal sichern**, siehe `signatur/LIESMICH.txt`.
+
+Auf diesem Rechner lässt sich die App nicht bauen: Android SDK und ein aktuelles Java fehlen.
+Deshalb läuft der Bau auf GitHub.
+
+## Adresse der Web-App
 
 **<https://nikdas1234.github.io/familien-wunschliste/>**
 
@@ -55,7 +87,7 @@ beiden Werte in `config.js`, läuft der **Demo-Modus** mit Beispielfamilie nur i
    Schlüssel (*secret* / *service_role*) verwenden.
 5. App veröffentlichen (siehe unten) und die Adresse samt Familiencode an die Familie geben.
 
-## Auf dem Handy installieren
+## Web-App auf dem Handy installieren (Alternative zur Android-App)
 
 - **Android (Chrome):** Adresse öffnen → Menü ⋮ → „Zum Startbildschirm hinzufügen“ / „App installieren“.
 - **iPhone (Safari):** Adresse öffnen → Teilen-Symbol → „Zum Home-Bildschirm“.
@@ -84,4 +116,8 @@ beiden Werte in `config.js`, läuft der **Demo-Modus** mit Beispielfamilie nur i
 | `sw.js`, `manifest.webmanifest`, `icons/` | machen die Seite installierbar und offline startfähig |
 | `supabase/setup.sql` | Einrichtung der Datenbank |
 | `dev-server.js` | Testserver für den eigenen Rechner |
+| `android/`, `capacitor.config.json`, `package.json` | Android-Hülle (Capacitor: packt die Web-Dateien in eine Android-App) |
+| `.github/workflows/android.yml` | Bauablauf auf GitHub |
+| `werkzeuge/www-bauen.js` | stellt die Dateien für die Android-App zusammen |
+| `signatur/` | Signaturschlüssel, nur lokal |
 | `werkzeuge/icons-erzeugen.ps1` | zeichnet das App-Symbol neu |
