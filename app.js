@@ -36,6 +36,7 @@ const state = {
   shared: null,
   appVersion: null,
   appUpdate: null,
+  updateProgress: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -408,9 +409,7 @@ function mainScreen() {
       h('button', { class: 'icon-btn avatar', 'aria-label': `Angemeldet als ${me.name} – Menü`, onclick: openMenu },
         me.name.charAt(0).toUpperCase())),
 
-    state.appUpdate && h('p', { class: 'banner' },
-      `Es gibt eine neue App-Version (${state.appUpdate}). Nach dem Herunterladen die Datei antippen und „Aktualisieren“ wählen. `,
-      h('a', { class: 'link', href: APK_URL, target: '_blank', rel: 'noopener noreferrer' }, 'Jetzt herunterladen')),
+    state.appUpdate && updateBanner(),
     DEMO && h('p', { class: 'banner' }, 'Demo-Modus: Die Wünsche liegen nur auf diesem Gerät.'),
     state.offline && h('p', { class: 'banner' }, 'Keine Verbindung – du siehst den letzten Stand.'),
 
@@ -433,6 +432,35 @@ function mainScreen() {
 
     h('button', { class: 'fab', disabled: state.offline, onclick: () => openWishForm(null) },
       h('span', { 'aria-hidden': 'true' }, '＋'), ' Wunsch'));
+}
+
+function updateBanner() {
+  const intro = `Es gibt eine neue App-Version (${state.appUpdate}). `;
+  // Ältere Hüllen (bis 1.2.0) können nicht selbst installieren: dort führt der Link in den Browser.
+  if (!appUpdater) {
+    return h('p', { class: 'banner' },
+      intro, 'Nach dem Herunterladen die Datei antippen und „Aktualisieren“ wählen. ',
+      h('a', { class: 'link', href: APK_URL, target: '_blank', rel: 'noopener noreferrer' }, 'Jetzt herunterladen'));
+  }
+  if (state.updateProgress != null) {
+    return h('p', { class: 'banner', role: 'status' }, `Neue Version wird geladen … ${state.updateProgress} %`);
+  }
+  return h('p', { class: 'banner' },
+    intro, 'Android fragt danach noch einmal nach – dort „Aktualisieren“ wählen. ',
+    h('button', { class: 'link', onclick: installAppUpdate }, 'Jetzt aktualisieren'));
+}
+
+async function installAppUpdate() {
+  if (state.updateProgress != null) return;
+  state.updateProgress = 0;
+  render();
+  try {
+    await appUpdater.install();
+  } catch {
+    toast('Das Update konnte nicht geladen werden. Bitte später noch einmal versuchen.');
+  }
+  state.updateProgress = null;
+  render();
 }
 
 function wishCard(wish, mine) {
@@ -584,6 +612,16 @@ if (nativeApp) {
     const dialog = document.querySelector('dialog[open]');
     if (dialog) dialog.close();
     else nativeApp.minimizeApp();
+  });
+}
+
+// In der Android-App (ab 1.3.0): neue Version direkt herunterladen und die Installation öffnen.
+const appUpdater = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppUpdate;
+if (appUpdater) {
+  appUpdater.addListener('progress', ({ percent }) => {
+    if (state.updateProgress == null) return;
+    state.updateProgress = percent;
+    render();
   });
 }
 

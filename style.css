@@ -223,6 +223,9 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .tag { font-weight: 600; }
 
 .link {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
   display: inline-block;
   max-width: 100%;
   margin-top: 8px;

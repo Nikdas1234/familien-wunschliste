@@ -7,8 +7,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Eigene Erweiterung muss vor dem Start der Hülle angemeldet sein.
+        // Eigene Erweiterungen müssen vor dem Start der Hülle angemeldet sein.
         registerPlugin(ShareTargetPlugin.class);
+        registerPlugin(AppUpdatePlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

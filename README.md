@@ -21,7 +21,7 @@ Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
 | `config.js` | Adresse und öffentlicher Schlüssel eingetragen |
 | Familie mit Familiencode | angelegt (von Niklas, Code steht nur in der Datenbank) |
 | Veröffentlichung im Internet | GitHub Pages, siehe Adresse unten |
-| Android-App | wird auf GitHub gebaut und signiert; Version 1.2.0 liegt als `2026-10-09_Wunschliste-1.2.0.apk` im Projektordner; sie aktualisiert ihren Inhalt selbst und nimmt geteilte Links an. **Noch nicht auf einem echten Handy getestet.** |
+| Android-App | wird auf GitHub gebaut und signiert; Version 1.3.0 liegt als `2026-10-09_Wunschliste-1.3.0.apk` im Projektordner; sie aktualisiert ihren Inhalt selbst, nimmt geteilte Links an und installiert neue Versionen per Knopf. **Noch nicht auf einem echten Handy getestet.** |
 
 ## Android-App
 
@@ -53,8 +53,11 @@ Android-Hülle selbst ändert — App-Name, Symbol, Capacitor-Version, `offline.
 3. Der Bau veröffentlicht die Datei selbst als „Release“ (so heißt auf GitHub eine
    veröffentlichte Version); der Download-Link oben zeigt danach auf die neue Datei.
 4. Die App meldet sich selbst: Beim nächsten Öffnen zeigt sie oben den Hinweis „Es gibt eine
-   neue App-Version“ mit dem Knopf „Jetzt herunterladen“ (geprüft wird höchstens alle sechs
-   Stunden). Nach dem Herunterladen die Datei antippen und „Aktualisieren“ bestätigen.
+   neue App-Version“ mit dem Knopf „Jetzt aktualisieren“ (geprüft wird höchstens alle sechs
+   Stunden). Ab Version 1.3.0 lädt die App die Datei selbst und öffnet die Installation von
+   Android; dort „Aktualisieren“ bestätigen. Beim ersten Mal fragt Android zusätzlich, ob die
+   Wunschliste Apps installieren darf — erlauben. Ältere Versionen (bis 1.2.0) schicken für
+   diesen einen Schritt noch in den Browser.
 
 Ganz von allein, ohne Antippen, geht das unter Android nur für Apps aus dem Play Store. Welche
 Version installiert ist, steht in der App im Menü (Kreis mit dem Anfangsbuchstaben oben rechts).
