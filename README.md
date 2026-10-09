@@ -17,8 +17,16 @@ iPhone gleich und braucht keinen App Store.
 | Datenbank-Funktionen | per Selbsttest in der Datenbank geprüft (anlegen, ändern, abhaken, löschen, falscher Code, unzulässiger Link) |
 | Zugriff von außen | geprüft: Tabellen gesperrt, falscher Code wird abgewiesen |
 | `config.js` | Adresse und öffentlicher Schlüssel eingetragen |
-| Familie mit Familiencode | **offen** — trägt Niklas selbst ein (Schritt 3 unten) |
-| Veröffentlichung im Internet (damit die Handys die App erreichen) | **offen** |
+| Familie mit Familiencode | angelegt (von Niklas, Code steht nur in der Datenbank) |
+| Veröffentlichung im Internet | GitHub Pages, siehe Adresse unten |
+
+## Adresse der App
+
+**<https://nikdas1234.github.io/familien-wunschliste/>**
+
+Die Adresse zusammen mit dem Familiencode an die Familie geben. Ausgeliefert wird der Stand des
+öffentlichen Repositorys <https://github.com/Nikdas1234/familien-wunschliste> (Branch `main`).
+Änderungen erscheinen dort erst nach einem `git push`, etwa eine Minute später.
 
 ## Am Rechner ausprobieren
 
