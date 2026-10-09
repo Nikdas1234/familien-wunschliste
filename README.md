@@ -21,7 +21,7 @@ Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
 | `config.js` | Adresse und öffentlicher Schlüssel eingetragen |
 | Familie mit Familiencode | angelegt (von Niklas, Code steht nur in der Datenbank) |
 | Veröffentlichung im Internet | GitHub Pages, siehe Adresse unten |
-| Android-App | wird auf GitHub gebaut und signiert; Version 1.1.0 liegt als `2026-10-09_Wunschliste-1.1.0.apk` im Projektordner; sie aktualisiert ihren Inhalt selbst. **Noch nicht auf einem echten Handy getestet.** |
+| Android-App | wird auf GitHub gebaut und signiert; Version 1.2.0 liegt als `2026-10-09_Wunschliste-1.2.0.apk` im Projektordner; sie aktualisiert ihren Inhalt selbst und nimmt geteilte Links an. **Noch nicht auf einem echten Handy getestet.** |
 
 ## Android-App
 
@@ -32,6 +32,11 @@ Es gibt sie in zwei Formen mit demselben Inhalt und derselben Datenbank:
 Android fragt einmal, ob die App, mit der man die Datei öffnet, „unbekannte Apps installieren“
 darf — erlauben. Meldet Play Protect einen unbekannten Entwickler, „Trotzdem installieren“ wählen.
 
+**Wünsche per „Teilen“ anlegen:** In einer Shop-App oder im Browser auf „Teilen“ tippen und
+„Wunschliste“ wählen. Die App öffnet das Formular für einen neuen Wunsch mit Titel und Link
+vorausgefüllt; Preis und Wichtigkeit trägt man selbst ein. Den Preis schicken die Shops beim
+Teilen nicht mit.
+
 **Updates kommen von selbst:** Die App lädt ihren Inhalt beim Start von der Adresse der
 Web-App (GitHub Pages). Eine Änderung an `index.html`, `app.js`, `style.css` usw. ist nach
 `git push` beim nächsten Öffnen der App da — spätestens nach rund zehn Minuten, so lange hält
@@ -41,7 +46,7 @@ Ohne Netz startet die App mit dem zuletzt geladenen Stand. Klappt das Laden gar 
 beim allerersten Start ohne Netz), zeigt sie die Seite `offline.html` aus dem Installationspaket.
 
 **Neue APK nur für die Hülle:** Eine neue Installationsdatei braucht es nur, wenn sich die
-Android-Hülle selbst ändert — App-Name, Symbol, Capacitor-Version, `offline.html`. Dann:
+Android-Hülle selbst ändert — App-Name, Symbol, Capacitor-Version, `offline.html`, Teilen-Empfang. Dann:
 
 1. `version` in `package.json` erhöhen, committen, `git push`.
 2. GitHub baut automatisch (Reiter „Actions“, Ablauf „Android-App bauen“, ca. 2 Minuten).

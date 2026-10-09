@@ -33,6 +33,7 @@ const state = {
   offline: false,
   loadError: null,
   codeError: null,
+  shared: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -195,6 +196,26 @@ function parseUrl(input) {
   }
 }
 
+// Über "Teilen" empfangener Text (z. B. aus der Amazon-App): Link heraussuchen, der Rest ist der Titel.
+// Browser schicken oft nur den Link als Text und den Seitentitel als Betreff.
+function parseShared({ text = '', subject = '' }) {
+  const match = text.match(/https?:\/\/\S+/i);
+  const url = match ? parseUrl(match[0].replace(/[)\].,;!]+$/, '')) : null;
+  const title = (match ? text.replace(match[0], ' ') : text)
+    .replace(/\s+/g, ' ')
+    .trim()
+    // Übliche Einleitungen der Shop-Apps abschneiden ("Schau dir das mal an: …").
+    .replace(/^(hey,?\s*)?(schau|sieh|guck|check (this|it) out|look at this)\b[^:!]{0,40}[:!]\s*/i, '');
+  return { title: (title || subject.trim()).slice(0, 120), url: url || null };
+}
+
+function handleShared(data) {
+  const shared = parseShared(data || {});
+  if (!shared.title && !shared.url) return;
+  state.shared = shared;
+  render();
+}
+
 function hostOf(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'Link'; }
 }
@@ -275,14 +296,24 @@ function render() {
   const chipScroll = chips ? chips.scrollLeft : 0;
 
   let screen;
+  let onMain = false;
   if (!DEMO && !state.code) screen = codeScreen();
   else if (!state.data) screen = state.loadError ? errorScreen() : loadingScreen();
   else if (!memberById(state.me)) screen = whoScreen();
-  else screen = mainScreen();
+  else { screen = mainScreen(); onMain = true; }
 
   app.replaceChildren(screen);
   const newChips = app.querySelector('.chips');
   if (newChips) newChips.scrollLeft = chipScroll;
+
+  // Über "Teilen" empfangenen Inhalt als neuen Wunsch anbieten, sobald man angemeldet ist.
+  if (onMain && state.shared && !state.offline) {
+    const shared = state.shared;
+    state.shared = null;
+    const open = document.querySelector('dialog[open]');
+    if (open) open.close();
+    openWishForm(null, shared);
+  }
 }
 
 function loadingScreen() {
@@ -453,15 +484,16 @@ function openMenu() {
       h('button', { class: 'btn ghost', onclick: () => dialog.close() }, 'Schließen')));
 }
 
-function openWishForm(wish) {
+// prefill: Vorbelegung für einen neuen Wunsch, z. B. aus einem geteilten Link.
+function openWishForm(wish, prefill = {}) {
   const editing = Boolean(wish);
   const title = h('input', {
     id: 'w-title', type: 'text', required: true, maxlength: '120', autocomplete: 'off',
-    placeholder: 'z. B. Wanderrucksack', value: wish ? wish.title : '',
+    placeholder: 'z. B. Wanderrucksack', value: wish ? wish.title : (prefill.title || ''),
   });
   const url = h('input', {
     id: 'w-url', type: 'text', inputmode: 'url', autocapitalize: 'none', autocomplete: 'off',
-    spellcheck: 'false', maxlength: '2000', placeholder: 'https://…', value: wish && wish.url ? wish.url : '',
+    spellcheck: 'false', maxlength: '2000', placeholder: 'https://…', value: wish ? (wish.url || '') : (prefill.url || ''),
   });
   const price = h('input', {
     id: 'w-price', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: 'z. B. 49,99',
@@ -526,7 +558,7 @@ function openWishForm(wish) {
     }, 'Wunsch löschen'));
 
   const dialog = openDialog('sheet', h('h2', null, editing ? 'Wunsch bearbeiten' : 'Neuer Wunsch'), form);
-  if (!editing) title.focus();
+  if (!editing && !prefill.title) title.focus();
 }
 
 // ---------------------------------------------------------------------------
@@ -548,6 +580,10 @@ if (nativeApp) {
     else nativeApp.minimizeApp();
   });
 }
+
+// In der Android-App: Inhalte annehmen, die über "Teilen" an die Wunschliste geschickt werden.
+const shareTarget = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareTarget;
+if (shareTarget) shareTarget.addListener('shared', handleShared);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => { /* App läuft auch ohne */ });
