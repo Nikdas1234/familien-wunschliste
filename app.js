@@ -664,10 +664,52 @@ function openWishForm(wish, prefill = {}) {
 // Start
 // ---------------------------------------------------------------------------
 
-document.addEventListener('visibilitychange', () => {
-  // Beim Zurückkehren in die App den neuesten Stand holen — außer es ist gerade ein Dialog offen.
-  if (document.visibilityState === 'visible' && state.data && !document.querySelector('dialog[open]')) refresh();
-});
+// Neue Fassung der Oberfläche erkennen und selbst neu laden. Auf dem Handy bleibt die App oft
+// tagelang im Hintergrund geöffnet und würde sonst die alte Fassung zeigen, bis man sie ganz schließt.
+// Verglichen wird die Kennung (ETag), die der Server zu jeder Datei mitschickt.
+const WATCHED_FILES = ['index.html', 'app.js', 'style.css'];
+const VERSION_CHECK_EVERY_MS = 60 * 1000;
+const RELOAD_PAUSE_MS = 10 * 60 * 1000;
+let loadedFingerprint = null;
+let lastVersionCheck = 0;
+
+async function serverFingerprint() {
+  const tags = await Promise.all(WATCHED_FILES.map(async (file) => {
+    const res = await fetch(file, { method: 'HEAD', cache: 'no-store' });
+    if (!res.ok) throw new Error(`${file}: ${res.status}`);
+    return res.headers.get('etag') || res.headers.get('last-modified') || '';
+  }));
+  return tags.join('|');
+}
+
+async function reloadIfNewVersion() {
+  if (Date.now() - lastVersionCheck < VERSION_CHECK_EVERY_MS) return;
+  lastVersionCheck = Date.now();
+  try {
+    const current = await serverFingerprint();
+    if (!current.replace(/\|/g, '')) return;   // Server schickt keine Kennung
+    if (!loadedFingerprint) { loadedFingerprint = current; return; }
+    if (current === loadedFingerprint) return;
+    // Nicht mitten im Ausfüllen neu laden; beim nächsten Zurückkehren wird erneut geprüft.
+    if (document.querySelector('dialog[open]')) { lastVersionCheck = 0; return; }
+    // Höchstens einmal in zehn Minuten, damit daraus nie eine Schleife wird.
+    const last = Number(sessionStorage.getItem('wl.reloaded') || 0);
+    if (Date.now() - last < RELOAD_PAUSE_MS) return;
+    sessionStorage.setItem('wl.reloaded', String(Date.now()));
+    location.reload();
+  } catch {
+    // Ohne Netz oder ohne Speicher bleibt einfach die geladene Fassung.
+  }
+}
+
+function onResume() {
+  if (document.visibilityState !== 'visible') return;
+  reloadIfNewVersion();
+  // Den neuesten Stand der Wünsche holen — außer es ist gerade ein Dialog offen.
+  if (state.data && !document.querySelector('dialog[open]')) refresh();
+}
+
+document.addEventListener('visibilitychange', onResume);
 
 // In der Android-App (Capacitor): Zurück-Taste schließt einen offenen Dialog,
 // sonst legt sie die App in den Hintergrund.
@@ -678,6 +720,8 @@ if (nativeApp) {
     if (dialog) dialog.close();
     else nativeApp.minimizeApp();
   });
+  // Zusätzlich zum Browser-Ereignis: Android meldet, wenn die App wieder in den Vordergrund kommt.
+  nativeApp.addListener('resume', onResume);
 }
 
 // In der Android-App (ab 1.3.0): neue Version direkt herunterladen und die Installation öffnen.
@@ -738,4 +782,5 @@ async function checkAppUpdate() {
 state.view = state.me;
 render();
 checkAppUpdate();
+reloadIfNewVersion();
 if (DEMO || state.code) refresh();

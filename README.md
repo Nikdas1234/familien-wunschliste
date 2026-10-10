@@ -37,10 +37,15 @@ darf — erlauben. Meldet Play Protect einen unbekannten Entwickler, „Trotzdem
 vorausgefüllt; Preis und Wichtigkeit trägt man selbst ein. Den Preis schicken die Shops beim
 Teilen nicht mit.
 
-**Updates kommen von selbst:** Die App lädt ihren Inhalt beim Start von der Adresse der
-Web-App (GitHub Pages). Eine Änderung an `index.html`, `app.js`, `style.css` usw. ist nach
-`git push` beim nächsten Öffnen der App da — spätestens nach rund zehn Minuten, so lange hält
-GitHub Pages alte Dateien vor. Niemand muss etwas neu installieren.
+**Updates kommen von selbst:** Die App lädt ihren Inhalt von der Adresse der Web-App
+(GitHub Pages). Eine Änderung an `index.html`, `app.js`, `style.css` usw. ist nach `git push`
+etwa eine Minute später online. Die App fragt bei jedem Start und jedes Mal, wenn man zu ihr
+zurückkehrt, beim Server nach und lädt sich bei einer neuen Fassung selbst neu (höchstens
+einmal in zehn Minuten, und nicht, solange ein Formular offen ist). Niemand muss etwas neu
+installieren.
+
+Falls ein Handy trotzdem eine alte Fassung zeigt: App ganz schließen (in der Übersicht der
+letzten Apps wegwischen) und neu öffnen.
 
 Ohne Netz startet die App mit dem zuletzt geladenen Stand. Klappt das Laden gar nicht (z. B.
 beim allerersten Start ohne Netz), zeigt sie die Seite `offline.html` aus dem Installationspaket.

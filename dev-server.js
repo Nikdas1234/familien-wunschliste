@@ -33,8 +33,10 @@ http
       res.writeHead(200, {
         'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
         'Cache-Control': 'no-store',
+        // Wie beim echten Server: Daran erkennt die App, ob es eine neuere Fassung gibt.
+        'Last-Modified': fs.statSync(file).mtime.toUTCString(),
       });
-      res.end(data);
+      res.end(req.method === 'HEAD' ? undefined : data);
     });
   })
   .listen(PORT, () => console.log(`Wunschliste läuft auf http://localhost:${PORT}`));
