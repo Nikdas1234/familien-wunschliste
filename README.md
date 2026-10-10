@@ -138,4 +138,5 @@ beiden Werte in `config.js`, läuft der **Demo-Modus** mit Beispielfamilie nur i
 | `werkzeuge/www-bauen.js` | stellt die Dateien für die Android-App zusammen |
 | `offline.html` | Seite der Android-App, wenn die Wunschliste nicht geladen werden kann |
 | `signatur/` | Signaturschlüssel, nur lokal |
+| `entwurf/` | Gestaltungsentwurf vom 10.10.2026 mit Beispieldaten, nur lokal (Vorlage für die heutige Oberfläche) |
 | `werkzeuge/icons-erzeugen.ps1` | zeichnet das App-Symbol neu |

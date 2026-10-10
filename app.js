@@ -10,7 +10,7 @@ const PRIORITIES = [
   { value: 3, label: 'Herzenswunsch' },
 ];
 
-const euro = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+const euro = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 
 // localStorage kann gesperrt sein (privates Fenster) — dann läuft die App ohne Merken weiter.
 const store = {
@@ -164,6 +164,41 @@ function h(tag, props, ...children) {
   return el;
 }
 
+// Eigene Liniensymbole (24er-Raster) statt Schriftzeichen und Emoji.
+const ICONS = {
+  refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  plus: 'M12 5v14M5 12h14',
+  pencil: 'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',
+  heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  link: 'M14 5h5v5M19 5l-8 8M11 7H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-5',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  gift: 'M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7C10.5 7 8 6.5 8 4.5S10.5 2.5 12 7zM12 7c1.5 0 4-.5 4-2.5S13.5 2.5 12 7z',
+};
+
+function icon(name, extra) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', extra ? `icon ${extra}` : 'icon');
+  svg.setAttribute('aria-hidden', 'true');
+  const shape = document.createElementNS(NS, 'path');
+  shape.setAttribute('d', ICONS[name]);
+  svg.append(shape);
+  return svg;
+}
+
+// Jede Person bekommt aus ihrem Namen einen festen Farbton für ihr Kürzel.
+const AVATAR_HUES = [14, 40, 150, 200, 262, 332];
+function avatar(member, extra) {
+  let sum = 0;
+  for (const ch of member.name) sum += ch.codePointAt(0);
+  return h('span', {
+    class: extra ? `avatar ${extra}` : 'avatar',
+    style: `--h: ${AVATAR_HUES[sum % AVATAR_HUES.length]}`,
+    'aria-hidden': 'true',
+  }, member.name.charAt(0).toUpperCase());
+}
+
 let toastTimer;
 function toast(message) {
   document.querySelector('.toast')?.remove();
@@ -295,8 +330,8 @@ function setMe(id) {
 const app = document.getElementById('app');
 
 function render() {
-  const chips = app.querySelector('.chips');
-  const chipScroll = chips ? chips.scrollLeft : 0;
+  const people = app.querySelector('.people');
+  const peopleScroll = people ? people.scrollLeft : 0;
 
   let screen;
   let onMain = false;
@@ -306,8 +341,8 @@ function render() {
   else { screen = mainScreen(); onMain = true; }
 
   app.replaceChildren(screen);
-  const newChips = app.querySelector('.chips');
-  if (newChips) newChips.scrollLeft = chipScroll;
+  const newPeople = app.querySelector('.people');
+  if (newPeople) newPeople.scrollLeft = peopleScroll;
 
   // Über "Teilen" empfangenen Inhalt als neuen Wunsch anbieten, sobald man angemeldet ist.
   if (onMain && state.shared && !state.offline) {
@@ -319,28 +354,37 @@ function render() {
   }
 }
 
+// Farbfläche mit dem Geschenk aus dem App-Symbol: Kopf aller Bildschirme vor der eigentlichen Liste.
+function brand(title, text) {
+  return h('div', { class: 'brand' },
+    h('div', { class: 'brand-mark' }, icon('gift')),
+    h('h1', null, title),
+    text && h('p', null, text));
+}
+
 function loadingScreen() {
-  return h('main', { class: 'center' }, h('p', { class: 'muted' }, 'Lädt …'));
+  return h('main', { class: 'welcome' }, brand('Familien-Wunschliste', 'Lädt …'));
 }
 
 function errorScreen() {
-  return h('main', { class: 'center' },
-    h('h1', null, 'Wunschliste'),
-    h('p', { class: 'muted' }, state.loadError),
-    h('button', { class: 'btn primary', onclick: () => { state.loadError = null; render(); refresh(); } },
-      'Noch einmal versuchen'),
-    !DEMO && h('button', { class: 'btn ghost', onclick: () => { forgetCode(); state.loadError = null; render(); } },
-      'Anderen Familiencode eingeben'));
+  return h('main', { class: 'welcome' },
+    brand('Familien-Wunschliste', 'Die Wunschliste konnte nicht geladen werden.'),
+    h('div', { class: 'panel stack' },
+      h('p', { class: 'error', role: 'alert' }, state.loadError),
+      h('button', { class: 'btn primary', onclick: () => { state.loadError = null; render(); refresh(); } },
+        'Noch einmal versuchen'),
+      !DEMO && h('button', { class: 'btn ghost', onclick: () => { forgetCode(); state.loadError = null; render(); } },
+        'Anderen Familiencode eingeben')));
 }
 
 function codeScreen() {
   const input = h('input', {
     id: 'code', type: 'text', required: true, autocomplete: 'off', autocapitalize: 'none',
-    spellcheck: 'false', placeholder: 'Familiencode',
+    spellcheck: 'false', placeholder: 'Code eingeben',
   });
   const button = h('button', { class: 'btn primary', type: 'submit' }, 'Weiter');
   const form = h('form', {
-    class: 'stack',
+    class: 'panel stack',
     onsubmit: async (event) => {
       event.preventDefault();
       const code = input.value.trim();
@@ -355,16 +399,16 @@ function codeScreen() {
     h('label', { for: 'code' }, 'Familiencode'),
     input,
     state.codeError && h('p', { class: 'error', role: 'alert' }, state.codeError),
-    button);
+    button,
+    h('p', { class: 'hint' }, 'Den Code bekommst du von deiner Familie. Das Handy merkt ihn sich.'));
 
-  return h('main', { class: 'center' },
-    h('div', { class: 'logo', 'aria-hidden': 'true' }, '🎁'),
-    h('h1', null, 'Familien-Wunschliste'),
-    h('p', { class: 'muted' }, 'Gib den Code ein, den ihr in der Familie teilt. Das Handy merkt ihn sich.'),
+  return h('main', { class: 'welcome' },
+    brand('Familien-Wunschliste', 'Alle Wünsche der Familie an einem Ort.'),
     form);
 }
 
 function whoScreen() {
+  const known = state.data.members.length > 0;
   const input = h('input', {
     id: 'newname', type: 'text', required: true, maxlength: '30', autocomplete: 'given-name',
     placeholder: 'Dein Name',
@@ -382,16 +426,18 @@ function whoScreen() {
       if (ok && id) { setMe(id); render(); } else button.disabled = false;
     },
   },
-    h('label', { for: 'newname' }, state.data.members.length ? 'Noch nicht dabei?' : 'Trag dich als Erstes ein'),
+    h('label', { for: 'newname' }, known ? 'Noch nicht dabei?' : 'Trag dich als Erstes ein'),
     input,
     button);
 
-  return h('main', { class: 'center' },
-    h('h1', null, 'Wer bist du?'),
-    state.data.members.length > 0 && h('div', { class: 'people' },
-      state.data.members.map((m) =>
-        h('button', { class: 'btn person', onclick: () => { setMe(m.id); render(); } }, m.name))),
-    form);
+  return h('main', { class: 'welcome' },
+    brand('Wer bist du?', state.data.family),
+    h('div', { class: 'panel stack' },
+      known && h('div', { class: 'who' },
+        state.data.members.map((m) =>
+          h('button', { class: 'who-item', onclick: () => { setMe(m.id); render(); } },
+            avatar(m, 'large'), h('span', null, m.name)))),
+      form));
 }
 
 function mainScreen() {
@@ -400,38 +446,53 @@ function mainScreen() {
   const viewed = memberById(state.view);
   const mine = viewed.id === me.id;
   const wishes = wishesOf(viewed.id);
+  const open = wishes.filter((w) => !w.done);
+  const done = wishes.filter((w) => w.done);
+  const sum = open.reduce((total, w) => total + (Number(w.price) || 0), 0);
   const members = [me, ...state.data.members.filter((m) => m.id !== me.id)];
+
+  const summary = open.length
+    ? `${open.length} ${open.length === 1 ? 'offener Wunsch' : 'offene Wünsche'}${sum ? ` · zusammen ca. ${euro.format(sum)}` : ''}`
+    : 'Keine offenen Wünsche';
 
   return h('div', { class: 'main' },
     h('header', { class: 'top' },
-      h('h1', null, state.data.family || 'Wunschliste'),
-      h('button', { class: 'icon-btn', 'aria-label': 'Aktualisieren', onclick: refresh }, '↻'),
-      h('button', { class: 'icon-btn avatar', 'aria-label': `Angemeldet als ${me.name} – Menü`, onclick: openMenu },
-        me.name.charAt(0).toUpperCase())),
+      h('div', { class: 'top-text' },
+        h('p', { class: 'eyebrow' }, state.data.family || 'Wunschliste'),
+        h('h1', null, mine ? 'Meine Wünsche' : viewed.name)),
+      h('button', { class: 'icon-btn', 'aria-label': 'Aktualisieren', onclick: refresh }, icon('refresh')),
+      h('button', { class: 'icon-btn', 'aria-label': `Menü – angemeldet als ${me.name}`, onclick: openMenu },
+        icon('more', 'bold'))),
 
     state.appUpdate && updateBanner(),
     DEMO && h('p', { class: 'banner' }, 'Demo-Modus: Die Wünsche liegen nur auf diesem Gerät.'),
     state.offline && h('p', { class: 'banner' }, 'Keine Verbindung – du siehst den letzten Stand.'),
 
-    h('nav', { class: 'chips', 'aria-label': 'Familienmitglieder' },
+    h('nav', { class: 'people', 'aria-label': 'Familienmitglieder' },
       members.map((m) => {
-        const open = state.data.wishes.filter((w) => w.member_id === m.id && !w.done).length;
+        const count = state.data.wishes.filter((w) => w.member_id === m.id && !w.done).length;
         return h('button', {
-          class: 'chip',
+          class: 'person',
           'aria-pressed': String(m.id === viewed.id),
+          'aria-label': `${m.id === me.id ? 'Meine Wünsche' : m.name}, ${count} offen`,
           onclick: () => { state.view = m.id; render(); },
-        }, m.id === me.id ? 'Meine Wünsche' : m.name, h('span', { class: 'count' }, open));
+        },
+          h('span', { class: 'ring' }, avatar(m), count > 0 && h('span', { class: 'badge' }, count)),
+          h('span', { class: 'person-name' }, m.id === me.id ? 'Ich' : m.name));
       })),
 
+    h('p', { class: 'summary' }, summary),
+
     h('main', { class: 'list' },
-      wishes.length
-        ? wishes.map((w) => wishCard(w, mine))
-        : h('p', { class: 'empty' }, mine
-          ? 'Noch keine Wünsche. Tippe unten auf „Wunsch“, um den ersten einzutragen.'
-          : `${viewed.name} hat noch nichts eingetragen.`)),
+      open.map((w) => wishCard(w, mine)),
+      wishes.length === 0 && h('p', { class: 'empty' }, mine
+        ? 'Noch keine Wünsche. Tippe unten auf „Wunsch“, um den ersten einzutragen.'
+        : `${viewed.name} hat noch nichts eingetragen.`),
+      done.length > 0 && h('h2', { class: 'section' }, 'Erfüllt'),
+      done.map((w) => wishCard(w, mine))),
 
     h('button', { class: 'fab', disabled: state.offline, onclick: () => openWishForm(null) },
-      h('span', { 'aria-hidden': 'true' }, '＋'), ' Wunsch'));
+      icon('plus'), 'Wunsch'));
 }
 
 function updateBanner() {
@@ -466,33 +527,34 @@ async function installAppUpdate() {
 function wishCard(wish, mine) {
   const prio = PRIORITIES.find((p) => p.value === wish.priority) || PRIORITIES[1];
 
-  return h('article', { class: wish.done ? 'card done' : 'card' },
+  return h('article', { class: `card p${prio.value}${wish.done ? ' done' : ''}` },
     mine && h('input', {
       type: 'checkbox', class: 'check', checked: wish.done, disabled: state.offline,
       'aria-label': `„${wish.title}“ als erfüllt markieren`,
       onchange: (event) => mutate(() => api.setDone(wish.id, event.target.checked)),
     }),
     h('div', { class: 'body' },
-      h('h2', null, wish.title),
+      h('div', { class: 'row' },
+        h('h3', null, wish.title),
+        // Preise sind ohnehin Circa-Angaben, deshalb auf ganze Euro gerundet.
+        wish.price != null && h('span', { class: 'price' }, euro.format(wish.price))),
       h('div', { class: 'meta' },
-        h('span', { class: `prio p${prio.value}`, title: prio.label },
-          h('span', { 'aria-hidden': 'true' }, '♥'.repeat(prio.value)), ` ${prio.label}`),
-        wish.price != null && h('span', { class: 'price' }, `ca. ${euro.format(wish.price)}`),
-        wish.done && h('span', { class: 'tag' }, 'erfüllt')),
-      wish.url && h('a', { class: 'link', href: wish.url, target: '_blank', rel: 'noopener noreferrer' },
-        `${hostOf(wish.url)} ↗`)),
-    mine && h('button', {
-      class: 'icon-btn', 'aria-label': `„${wish.title}“ bearbeiten`, disabled: state.offline,
-      onclick: () => openWishForm(wish),
-    }, '✎'));
+        h('span', { class: 'prio' }, icon('heart', prio.value === 3 ? 'fill' : null), prio.label),
+        wish.url && h('a', { class: 'shop', href: wish.url, target: '_blank', rel: 'noopener noreferrer' },
+          icon('link'), h('span', null, hostOf(wish.url))),
+        mine && h('button', {
+          class: 'icon-btn edit', 'aria-label': `„${wish.title}“ bearbeiten`, disabled: state.offline,
+          onclick: () => openWishForm(wish),
+        }, icon('pencil')))));
 }
 
 // ---------------------------------------------------------------------------
 // Dialoge
 // ---------------------------------------------------------------------------
 
-function openDialog(className, ...children) {
-  const dialog = h('dialog', { class: className }, children);
+// Von unten eingeschobenes Blatt.
+function openDialog(...children) {
+  const dialog = h('dialog', { class: 'sheet' }, h('div', { class: 'grabber', 'aria-hidden': 'true' }), children);
   dialog.addEventListener('close', () => dialog.remove());
   // Tippen neben den Dialog schließt ihn.
   dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
@@ -503,9 +565,11 @@ function openDialog(className, ...children) {
 
 function openMenu() {
   const me = memberById(state.me);
-  const dialog = openDialog('sheet',
-    h('h2', null, `Angemeldet als ${me.name}`),
-    state.appVersion && h('p', { class: 'muted' }, `App-Version ${state.appVersion}`),
+  const details = [state.data.family, state.appVersion && `App-Version ${state.appVersion}`].filter(Boolean);
+  const dialog = openDialog(
+    h('div', { class: 'menu-head' },
+      avatar(me),
+      h('div', null, h('h2', null, me.name), h('p', { class: 'hint left' }, details.join(' · ')))),
     h('div', { class: 'stack' },
       h('button', {
         class: 'btn',
@@ -530,7 +594,7 @@ function openWishForm(wish, prefill = {}) {
     spellcheck: 'false', maxlength: '2000', placeholder: 'https://…', value: wish ? (wish.url || '') : (prefill.url || ''),
   });
   const price = h('input', {
-    id: 'w-price', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: 'z. B. 49,99',
+    id: 'w-price', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: '49,99',
     value: wish && wish.price != null ? String(wish.price).replace('.', ',') : '',
   });
   const current = wish ? wish.priority : 2;
@@ -538,7 +602,7 @@ function openWishForm(wish, prefill = {}) {
     h('legend', null, 'Wie wichtig ist es dir?'),
     PRIORITIES.map((p) => h('label', null,
       h('input', { type: 'radio', name: 'prio', value: String(p.value), checked: p.value === current }),
-      h('span', null, p.label))));
+      h('span', null, icon('heart', p.value === 3 ? 'fill' : null), p.label))));
   const error = h('p', { class: 'error', role: 'alert', hidden: true });
   const save = h('button', { class: 'btn primary', type: 'submit' }, 'Speichern');
 
@@ -577,8 +641,9 @@ function openWishForm(wish, prefill = {}) {
     },
   },
     h('label', { for: 'w-title' }, 'Was wünschst du dir?'), title,
-    h('label', { for: 'w-url' }, 'Link zum Shop ', h('span', { class: 'muted' }, '(freiwillig)')), url,
-    h('label', { for: 'w-price' }, 'Preis ungefähr in € ', h('span', { class: 'muted' }, '(freiwillig)')), price,
+    h('div', { class: 'pair' },
+      h('div', { class: 'stack' }, h('label', { for: 'w-url' }, 'Link zum Shop'), url),
+      h('div', { class: 'stack narrow' }, h('label', { for: 'w-price' }, 'Preis ca. €'), price)),
     prio,
     error,
     save,
@@ -591,7 +656,7 @@ function openWishForm(wish, prefill = {}) {
       },
     }, 'Wunsch löschen'));
 
-  const dialog = openDialog('sheet', h('h2', null, editing ? 'Wunsch bearbeiten' : 'Neuer Wunsch'), form);
+  const dialog = openDialog(h('h2', null, editing ? 'Wunsch bearbeiten' : 'Neuer Wunsch'), form);
   if (!editing && !prefill.title) title.focus();
 }
 

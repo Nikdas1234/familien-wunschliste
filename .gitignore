@@ -6,3 +6,6 @@ signatur/
 *.apk
 *.p12
 *.jks
+
+# Gestaltungsentwurf mit Beispieldaten: bleibt lokal, gehört nicht ins öffentliche Repository
+entwurf/
